@@ -20,7 +20,7 @@ def interact_with_agent(prompt):
     try:
         # Chamada para a API da OpenAI (GPT-3 ou GPT-4)
         response = openai.Completion.create(
-            model="gpt-4o",  # Ou o modelo que você estiver usando, como gpt-4
+            model="GPT-4o",  # Ou o modelo que você estiver usando, como gpt-4
             prompt=prompt,
             max_tokens=150,  # Ajuste conforme necessário
             temperature=0.7  # Ajuste a criatividade da resposta
