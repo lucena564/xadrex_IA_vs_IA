@@ -41,6 +41,38 @@ def get_board_state():
     return "\n".join(tabuleiro_formatado)
 
 
+# @app.get("/", response_class=HTMLResponse)
+# def read_root():
+#     """
+#     Endpoint que retorna o estado atual do tabuleiro de xadrez com a interface em HTML.
+#     """
+#     html_content = f"""
+#     <html lang="pt">
+#         <head>
+#             <meta charset="UTF-8">
+#             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+#             <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+#             <title>Xadrez: IA vs IA</title>
+#         </head>
+#         <body>
+#             <div class="container">
+#                 <header>
+#                     <h1>Xadrez: IA vs IA</h1>
+#                     <p>Jogo de Xadrez entre duas Inteligências Artificiais</p>
+#                 </header>
+#                 <section class="board">
+#                     <h2>Tabuleiro de Xadrez</h2>
+#                     <pre>{board.unicode()}</pre>
+#                 </section>
+#                 <footer>
+#                     <button onclick="location.reload();">Atualizar Jogo</button>
+#                 </footer>
+#             </div>
+#         </body>
+#     </html>
+#     """
+#     return html_content
+
 @app.get("/", response_class=HTMLResponse)
 def read_root():
     """
@@ -58,13 +90,30 @@ def read_root():
             <div class="container">
                 <header>
                     <h1>Xadrez: IA vs IA</h1>
-                    <p>Jogo de Xadrez entre duas Inteligências Artificiais</p>
+                    <p>Jogo de Xadrez entre ChatGPT e DeepSeek</p>
                 </header>
-                <section class="board">
-                    <h2>Tabuleiro de Xadrez</h2>
-                    <pre>{board.unicode()}</pre>
-                </section>
+                <div class="game-board">
+                    <section class="player player1">
+                        <h2>Jogador 1: ChatGPT (Peças Brancas)</h2>
+                        <img src="/static/imgs/chatgpt.png" alt="ChatGPT" class="player-img">
+                    </section>
+                    <section class="board">
+                        <h2>Tabuleiro de Xadrez</h2>
+                        <pre>{board.unicode()}</pre>
+                    </section>
+                    <section class="player player2">
+                        <h2>Jogador 2: DeepSeek (Peças Pretas)</h2>
+                        <img src="/static/imgs/deepseek.png" alt="DeepSeek" class="player-img">
+                    </section>
+                </div>
                 <footer>
+                    <div class="messages-block">
+                        <h3>Mensagens</h3>
+                        <div class="messages">
+                            <p>ChatGPT: Ainda não instanciado!</p>
+                            <p>DeepSeek: Ainda não instanciado!</p>
+                        </div>
+                    </div>
                     <button onclick="location.reload();">Atualizar Jogo</button>
                 </footer>
             </div>
@@ -72,7 +121,6 @@ def read_root():
     </html>
     """
     return html_content
-
 
 @app.post("/move/")
 def make_move(move_request: MoveRequest):

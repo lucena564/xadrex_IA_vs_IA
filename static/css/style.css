@@ -19,7 +19,7 @@ body {
 
 .container {
     text-align: center;
-    max-width: 900px;
+    max-width: 1200px;
     width: 100%;
     padding: 20px;
     background-color: #fff;
@@ -42,10 +42,11 @@ header p {
     color: #7f8c8d;
 }
 
-h2 {
-    font-size: 1.8em;
-    color: #2c3e50;
-    margin-bottom: 20px;
+.game-board {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
 }
 
 .board {
@@ -54,6 +55,7 @@ h2 {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 50%;
 }
 
 pre {
@@ -65,6 +67,30 @@ pre {
     border-radius: 10px;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+
+.player {
+    width: 20%;
+    text-align: center;
+}
+
+.player h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+/* .player-img {
+    width: 80%;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+} */
+ 
+.player-img {
+    width: 100%;          /* Faz a imagem ocupar toda a largura do container */
+    height: auto;         /* Mantém a proporção da imagem */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    object-fit: contain;  /* Garante que a imagem se ajuste ao container sem ser cortada */
 }
 
 footer {
@@ -88,4 +114,28 @@ footer button:hover {
 
 footer button:focus {
     outline: none;
+}
+
+/* Bloco de mensagens */
+.messages-block {
+    background-color: #333;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.messages {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 1.1em;
+}
+
+.messages p {
+    margin-bottom: 10px;
+}
+
+footer .messages-block h3 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
 }
