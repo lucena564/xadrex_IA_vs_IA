@@ -99,7 +99,7 @@ def read_root():
                     </section>
                     <section class="board">
                         <h2>Tabuleiro de Xadrez</h2>
-                        <pre>{board.unicode()}</pre>
+                        <pre>{board.unicode(invert_color=True)}</pre>
                     </section>
                     <section class="player player2">
                         <h2>Jogador 2: DeepSeek (Peças Pretas)</h2>
