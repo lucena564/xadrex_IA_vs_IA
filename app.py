@@ -40,38 +40,54 @@ def get_board_state():
     tabuleiro_formatado.append("      A      B      C      D      E      F      G      H\n")
     return "\n".join(tabuleiro_formatado)
 
+def get_board_representations():
+    """
+    Retorna o estado do tabuleiro em três formatos:
+    1. Notação FEN
+    2. Lista de posições (JSON)
+    3. Matriz 2D (JSON)
+    """
+    # 1. Notação FEN
+    fen = board.fen()
 
-# @app.get("/", response_class=HTMLResponse)
-# def read_root():
-#     """
-#     Endpoint que retorna o estado atual do tabuleiro de xadrez com a interface em HTML.
-#     """
-#     html_content = f"""
-#     <html lang="pt">
-#         <head>
-#             <meta charset="UTF-8">
-#             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-#             <link rel="stylesheet" type="text/css" href="/static/css/style.css">
-#             <title>Xadrez: IA vs IA</title>
-#         </head>
-#         <body>
-#             <div class="container">
-#                 <header>
-#                     <h1>Xadrez: IA vs IA</h1>
-#                     <p>Jogo de Xadrez entre duas Inteligências Artificiais</p>
-#                 </header>
-#                 <section class="board">
-#                     <h2>Tabuleiro de Xadrez</h2>
-#                     <pre>{board.unicode()}</pre>
-#                 </section>
-#                 <footer>
-#                     <button onclick="location.reload();">Atualizar Jogo</button>
-#                 </footer>
-#             </div>
-#         </body>
-#     </html>
-#     """
-#     return html_content
+    # 2. Lista de posições (JSON)
+    piece_dict = {
+        'pT': [], 'pC': [], 'pB': [], 'pQ': [], 'pK': [], 'pP': [],
+        'bT': [], 'bC': [], 'bB': [], 'bQ': [], 'bK': [], 'bP': []
+    }
+    
+    piece_symbols = {
+        'r': 'pT', 'n': 'pC', 'b': 'pB', 'q': 'pQ', 'k': 'pK', 'p': 'pP',
+        'R': 'bT', 'N': 'bC', 'B': 'bB', 'Q': 'bQ', 'K': 'bK', 'P': 'bP'
+    }
+
+    files = "ABCDEFGH"
+    board_matrix = [["" for _ in range(8)] for _ in range(8)]  # Inicializa matriz vazia
+
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            piece_type = piece.symbol()
+            mapped_piece = piece_symbols[piece_type]
+
+            rank = 8 - (square // 8)
+            file = files[square % 8]
+            position = f"{file}{rank}"
+
+            piece_dict[mapped_piece].append(position)
+            board_matrix[8 - rank][square % 8] = mapped_piece  # Atualiza a matriz 2D
+
+    return {
+        "FEN": fen,
+        "Lista de Posições": piece_dict,
+        "Matriz 2D": board_matrix
+    }
+
+@app.get("/board/representations")
+def get_representations():
+    """Endpoint para obter o estado do tabuleiro em diferentes formatos."""
+    return JSONResponse(content=get_board_representations())
+
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
