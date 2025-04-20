@@ -17,7 +17,8 @@ class Menager:
         self.model_openai = model_openai
         self.model_deepseek = model_deepseek
         self.context = ''
-        self.last_move = None  
+        self.last_move = None
+        self.flag_openai = True
 
     def set_last_move(self, move: str):
         """Define o último movimento realizado pelo agente."""
@@ -52,7 +53,7 @@ Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
             resposta = client.chat.completions.create(
                 model=self.model_deepseek,
                 messages=[
-                    {"role": "system", "content": f"""Você está jogando xadrez. Para cada movimento, você deve responder com o movimento em notação algébrica. Você pode usar a notação "e4" para mover um peão para e4, "Nf3" para mover um cavalo para f3, etc. Não forneça explicações ou justificativas. Além disso, você irá saber o estado atual do tabuleiro para decidir a sua jogada.
+                    {"role": "system", "content": f"""Você está jogando xadrez com as peças pretas. Para cada movimento, você deve responder com o movimento em notação algébrica. Você pode usar a notação "e4" para mover um peão para e4, "Nf3" para mover um cavalo para f3, etc. Não forneça explicações ou justificativas. Além disso, você irá saber o estado atual do tabuleiro para decidir a sua jogada.
 
 Estado atual do tabuleiro: {self.context}
 
@@ -76,3 +77,30 @@ Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
         except Exception as e:
             print(f"Erro ao fazer a movimentação: {e}")
             return None
+        
+    def single_moviment(self):
+        """Processo para realizar um movimento da partida. Tanto para o jogador 1 quanto para o jogador 2."""
+        
+        # Pegando o estado atual do tabuleiro
+        url_satate_board = "http://localhost:8000/board/representations"
+
+        payload_state_board = {}
+        headers_state_board = {}
+
+        state_board = requests.request("GET", url_satate_board, headers=headers_state_board, data=payload_state_board)
+
+        # Tratando inicio da partida
+        if self.last_move == None:
+            prompt = "A partida ainda não começou. Você é o jogador 1 e deve fazer a primeira jogada. Escolha o seu movimento."
+        else:
+            jogada = json.dumps(jogada)
+            self.last_move(jogada)
+            prompt = f"Qual o seu próximo movimento? Jogada do último jogador: {self.last_move}"
+
+        # Verificando qual agente deve jogar
+        if self.flag_openai:
+            jogada = self.interact_with_OpenAI(prompt, state_board)
+            self.flag_openai = False
+        else:
+            jogada = self.interact_with_DeepSeek(prompt, state_board)
+            self.flag_openai = True
