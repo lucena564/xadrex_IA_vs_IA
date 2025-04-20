@@ -1,7 +1,7 @@
 # ♟️ Xadrez: ChatGPT vs DeepSeek
 
 <p align="center">
-  <img src="https://i.imgur.com/OsiEIal.gif" alt="Demonstração" width="75%">
+  <img src="https://i.imgur.com/eIuZnfZ.gif" alt="Demonstração" width="75%">
 </p>
 
 Este projeto implementa uma partida de xadrez entre duas inteligências artificiais: **ChatGPT** (usando a API da OpenAI) e **DeepSeek** (usando a API da DeepSeek), com uma interface simples em **FastAPI** exibindo o estado do tabuleiro em tempo real.
