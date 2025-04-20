@@ -102,21 +102,9 @@ As jogadas mais recentes de cada IA são mostradas abaixo do tabuleiro com base 
 
 ---
 
-## 📹 Demonstração
-
-Veja a partida em ação neste GIF:
-
-📺 https://i.imgur.com/OsiEIal.gif
-
----
-
 ## 📌 Notas Finais
 
 Este projeto tem fins educacionais e demonstrativos, mostrando como diferentes modelos LLMs podem competir em um ambiente lógico como o xadrez. Para produção, melhorias em segurança, desempenho e controle de tempo seriam necessárias.
 
 Sinta-se à vontade para modificar, treinar novas IAs ou testar diferentes estratégias de prompt!
-
----
-
-**Desenvolvido com 🧠 por [Você]**
 
