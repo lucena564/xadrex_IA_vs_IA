@@ -9,10 +9,12 @@ app = FastAPI()
 # Montando arquivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-board = chess.Board()  # Cria uma nova instância do jogo
+board = chess.Board()
 
 class MoveRequest(BaseModel):
     move: str
+
+move_history = []
 
 def get_board_state():
     """
@@ -75,7 +77,7 @@ def get_board_representations():
             position = f"{file}{rank}"
 
             piece_dict[mapped_piece].append(position)
-            board_matrix[8 - rank][square % 8] = mapped_piece  # Atualiza a matriz 2D
+            board_matrix[8 - rank][square % 8] = mapped_piece
 
     return {
         "FEN": fen,
@@ -126,8 +128,8 @@ def read_root():
                     <div class="messages-block">
                         <h3>Mensagens</h3>
                         <div class="messages">
-                            <p>ChatGPT: Ainda não instanciado!</p>
-                            <p>DeepSeek: Ainda não instanciado!</p>
+                            <p>DeepSeek: <span id="jogada-chatgpt">Carregando...</span></p>
+                            <p>ChatGPT: <span id="jogada-deepseek">Carregando...</span></p>
                         </div>
                     </div>
                     <button onclick="location.reload();">Atualizar Jogo</button>
@@ -143,19 +145,41 @@ def read_root():
                     }} catch (erro) {{
                         console.error('Erro ao atualizar o tabuleiro:', erro);
                     }}
+
+                    try {{
+                        const resposta = await fetch('/ultimas-jogadas');
+                        const jogadas = await resposta.json();
+                        
+                        document.getElementById('jogada-chatgpt').innerText = jogadas.chatgpt || 'Aguardando jogada...';
+                        document.getElementById('jogada-deepseek').innerText = jogadas.deepseek || 'Aguardando jogada...';
+                    }} catch (erro) {{
+                        console.error('Erro ao buscar jogadas:', erro);
+                    }}
                 }}
 
-                setInterval(atualizarTabuleiro, 1800);
-                atualizarTabuleiro();
+                setInterval(atualizarTabuleiro, 2000);
             </script>
         </body>
     </html>
     """
     return html_content
 
+@app.get("/ultimas-jogadas")
+def ultimas_jogadas():
+    """
+    Retorna as últimas jogadas de cada jogador.
+    """
+    return JSONResponse(content={
+        "chatgpt": jogada_chatgpt if jogada_chatgpt else 'Aguardando jogada...',
+        "deepseek": jogada_deepseek if jogada_deepseek else 'Aguardando jogada...'
+    })
+
 @app.get("/estado", response_class=HTMLResponse)
 def estado_tabuleiro():
     return f"<pre>{board.unicode(invert_color=True)}</pre>"
+
+jogada_chatgpt = "Aguardando jogada..."
+jogada_deepseek = "Aguardando jogada..."
 
 @app.post("/move/")
 def make_move(move_request: MoveRequest):
@@ -164,27 +188,31 @@ def make_move(move_request: MoveRequest):
 
     Exemplo de uso:
     - Enviar um JSON `{"move": "e4"}` para mover um peão para e4.
-
-    Retorna:
-    - Sucesso: Novo estado do tabuleiro
-    - Erro: Mensagem de erro explicando o problema do movimento
     """
+    global jogada_chatgpt, jogada_deepseek
+
     try:
-        move = move_request.move  # Acessa o movimento do corpo da requisição
-        board.push_san(move)  # Tenta fazer o movimento
+        move = move_request.move 
+        board.push_san(move)
+
+        if board.turn == chess.WHITE:
+            jogada_chatgpt = move
+        else:
+            jogada_deepseek = move
+
         return JSONResponse(content={"success": True, "tabuleiro": get_board_state()})
 
     except chess.IllegalMoveError:
-        return JSONResponse(content={"success": False, "error": f"Movimento ilegal! Tente outro. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": "Movimento ilegal!"}, status_code=400)
 
     except chess.InvalidMoveError:
-        return JSONResponse(content={"success": False, "error": f"Movimento inválido! Verifique a notação. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": "Movimento inválido!"}, status_code=400)
 
     except chess.AmbiguousMoveError:
-        return JSONResponse(content={"success": False, "error": f"Movimento ambíguo! Especifique melhor. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": "Movimento ambíguo!"}, status_code=400)
 
     except chess.CheckError:
-        return JSONResponse(content={"success": False, "error": f"Movimento inválido! O rei está em cheque. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": "Movimento inválido! O rei está em cheque!"}, status_code=400)
 
 if __name__ == "__main__":
     import uvicorn

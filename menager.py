@@ -148,7 +148,7 @@ Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
         else:
             self.set_last_move(jogada)
             if self.flag_openai:
-                print(f"\nJogador 2 (DeepSeek) jogou: {jogada}")
+                print(f"\nJogador 2 (DeepSeek) jogou: {jogada}\n-----------------------------------------------------")
             else:
-                print(f"\nJogador 1 (OpenAI) jogou: {jogada}")
+                print(f"\nJogador 1 (OpenAI) jogou: {jogada}\n-----------------------------------------------------")
             self.erro = False
