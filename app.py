@@ -88,12 +88,12 @@ def get_representations():
     """Endpoint para obter o estado do tabuleiro em diferentes formatos."""
     return JSONResponse(content=get_board_representations())
 
+@app.get("/refresh", response_class=HTMLResponse)
+def refresh_board():
+    return read_root()
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    """
-    Endpoint que retorna o estado atual do tabuleiro de xadrez com a interface em HTML.
-    """
     html_content = f"""
     <html lang="pt">
         <head>
@@ -115,7 +115,7 @@ def read_root():
                     </section>
                     <section class="board">
                         <h2>Tabuleiro de Xadrez</h2>
-                        <pre>{board.unicode(invert_color=True)}</pre>
+                        <div id="tabuleiro"><pre>{board.unicode(invert_color=True)}</pre></div>
                     </section>
                     <section class="player player2">
                         <h2>Jogador 2: DeepSeek (Peças Pretas)</h2>
@@ -133,10 +133,29 @@ def read_root():
                     <button onclick="location.reload();">Atualizar Jogo</button>
                 </footer>
             </div>
+
+            <script>
+                async function atualizarTabuleiro() {{
+                    try {{
+                        const resposta = await fetch('/estado');
+                        const html = await resposta.text();
+                        document.getElementById('tabuleiro').innerHTML = html;
+                    }} catch (erro) {{
+                        console.error('Erro ao atualizar o tabuleiro:', erro);
+                    }}
+                }}
+
+                setInterval(atualizarTabuleiro, 1800);
+                atualizarTabuleiro();
+            </script>
         </body>
     </html>
     """
     return html_content
+
+@app.get("/estado", response_class=HTMLResponse)
+def estado_tabuleiro():
+    return f"<pre>{board.unicode(invert_color=True)}</pre>"
 
 @app.post("/move/")
 def make_move(move_request: MoveRequest):
@@ -156,16 +175,16 @@ def make_move(move_request: MoveRequest):
         return JSONResponse(content={"success": True, "tabuleiro": get_board_state()})
 
     except chess.IllegalMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento ilegal! Tente outro."}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento ilegal! Tente outro. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.InvalidMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento inválido! Verifique a notação."}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento inválido! Verifique a notação. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.AmbiguousMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento ambíguo! Especifique melhor."}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento ambíguo! Especifique melhor. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.CheckError:
-        return JSONResponse(content={"success": False, "error": "Movimento inválido! O rei está em cheque."}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento inválido! O rei está em cheque. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
 if __name__ == "__main__":
     import uvicorn

@@ -5,12 +5,13 @@ import requests
 from openai.types.chat.completion_create_params import ResponseFormat
 from dotenv import load_dotenv
 from openai import OpenAI
+from selenium import webdriver
 
 # Carregar as variáveis do arquivo .env
 load_dotenv()
 
 class Menager:
-    def __init__(self, api_key_openai: str, api_key_deepseek: str, model_openai="gpt-4o-mini", model_deepseek="deepseek-chat"):
+    def __init__(self, api_key_openai: str, api_key_deepseek: str, model_openai="gpt-4o-mini", model_deepseek="deepseek-reasoner"):
         """Inicializa a classe com a chave da API da OpenAI e o model_openaio."""
         self.api_key_openai = api_key_openai
         self.api_key_deepseek = api_key_deepseek
@@ -19,6 +20,9 @@ class Menager:
         self.context = ''
         self.last_move = None
         self.flag_openai = True
+        self.cont_rep = 0
+        self.erro = False
+        self.erro_prompt = ""
 
     def set_last_move(self, move: str):
         """Define o último movimento realizado pelo agente."""
@@ -78,7 +82,7 @@ Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
             print(f"Erro ao fazer a movimentação: {e}")
             return None
         
-    def single_moviment(self):
+    def single_moviment(self, cont=0):
         """Processo para realizar um movimento da partida. Tanto para o jogador 1 quanto para o jogador 2."""
         
         # Pegando o estado atual do tabuleiro
@@ -93,14 +97,58 @@ Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
         if self.last_move == None:
             prompt = "A partida ainda não começou. Você é o jogador 1 e deve fazer a primeira jogada. Escolha o seu movimento."
         else:
-            jogada = json.dumps(jogada)
-            self.last_move(jogada)
-            prompt = f"Qual o seu próximo movimento? Jogada do último jogador: {self.last_move}"
+            if self.erro == True:
+                prompt = self.erro_prompt
+                self.erro == False
+            else:
+                prompt = f"Qual o seu próximo movimento? Jogada do último jogador: {self.last_move}"
 
         # Verificando qual agente deve jogar
         if self.flag_openai:
-            jogada = self.interact_with_OpenAI(prompt, state_board)
+            print(json.dumps(state_board.text))
+            print(prompt)
+            jogada = self.interact_with_OpenAI(prompt, json.dumps(state_board.text))
+            print(f"OpenAI output: {jogada}")
+            
             self.flag_openai = False
         else:
-            jogada = self.interact_with_DeepSeek(prompt, state_board)
+            print(json.dumps(state_board.text))
+            print(prompt)
+            jogada = self.interact_with_DeepSeek(prompt, json.dumps(state_board.text))
+            print(f"DeepSeek output: {jogada}")
             self.flag_openai = True
+
+        # Verificando se o movimento foi válido
+        url = "http://localhost:8000/move/"
+
+        payload = json.dumps(jogada)
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        response = requests.request("POST", url, headers=headers, data=payload)
+        response = json.loads(response.text)
+
+        if response['success'] == False:
+            if self.flag_openai:
+                self.flag_openai = False
+                self.erro = True
+            else:
+                self.flag_openai = True
+                self.erro = True
+
+            posicoes = json.loads(state_board.text)
+            posicoes = posicoes['FEN']
+            self.erro_prompt = prompt = f"Você está jogando xadrez contra um outro jogador. Você deve escolher o seu próximo movimento sabendo que o movimento do último jogador foi: {self.last_move}. Você tentou realizar uma movimentação inválida por isso você deve fazer uma nova escolha de peças para a sua próxima jogada. Vou disponibilizar o estado do tabuleiro atual e também as peças que você tem disponível para jogar. Estado atual do tabuleiro: {json.dumps(posicoes)}, Peças disponíveis para jogar: {response['error']}. Escolha o seu movimento."
+            print(cont)
+            self.single_moviment(cont+1)
+
+            if cont > 3:
+                return "self.cont_rep = 3. Critério de parada atingido."
+
+        else:
+            self.set_last_move(jogada)
+            if self.flag_openai:
+                print(f"\nJogador 2 (DeepSeek) jogou: {jogada}")
+            else:
+                print(f"\nJogador 1 (OpenAI) jogou: {jogada}")
+            self.erro = False
