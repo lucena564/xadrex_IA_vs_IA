@@ -43,7 +43,7 @@ Estado atual do tabuleiro: {self.context}
 Responda **apenas** assim: {{ "move": "<movimentação_da_peça>" }}."""},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.1
+                temperature=1.0
                 )
             return json.loads(resposta.choices[0].message.content)
         except Exception as e:

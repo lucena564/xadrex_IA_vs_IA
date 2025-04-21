@@ -203,16 +203,16 @@ def make_move(move_request: MoveRequest):
         return JSONResponse(content={"success": True, "tabuleiro": get_board_state()})
 
     except chess.IllegalMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento ilegal!"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento ilegal! Tente outro. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.InvalidMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento inválido!"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento inválido! Verifique a notação. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.AmbiguousMoveError:
-        return JSONResponse(content={"success": False, "error": "Movimento ambíguo!"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento ambíguo! Especifique melhor. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
     except chess.CheckError:
-        return JSONResponse(content={"success": False, "error": "Movimento inválido! O rei está em cheque!"}, status_code=400)
+        return JSONResponse(content={"success": False, "error": f"Movimento inválido! O rei está em cheque. Movimentos disponíveis: {[board.san(move) for move in board.legal_moves]}"}, status_code=400)
 
 if __name__ == "__main__":
     import uvicorn
